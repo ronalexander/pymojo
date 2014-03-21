@@ -43,11 +43,11 @@ constructor and four functions:
 The constructor accepts the following arguments:
 
  * `endpoint` - The network path to the server. This should be an IP or domain.
- * `port` - The port Jojo listens on (default: 9000)
- * `use_ssl` - Whether or not to use HTTPS
- * `verify` - Whether to bother verifying Jojo's SSL certificate
- * `user` - The username for HTTP Basic Auth
- * `password` - The password for HTTP Basic Auth
+ * `port` - The port Jojo listens on (default: 3000)
+ * `use_ssl` - Whether or not to use HTTPS (default: False)
+ * `verify` - Whether to bother verifying Jojo's SSL certificate (default: True)
+ * `user` - The username for HTTP Basic Auth (default: None)
+ * `password` - The password for HTTP Basic Auth (default: None)
 
 When you run the constructor, Mojo connects to Jojo, downloads the script index,
 and caches that data. If you run `get_script`, the data will be returned from

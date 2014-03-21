@@ -3,8 +3,8 @@ import json
 import requests
 
 class Mojo:
-  def __init__(self, endpoint, port=9000, use_ssl=False,
-               verify=True, user="", password=""):
+  def __init__(self, endpoint, port=3000, use_ssl=False,
+               verify=True, user=None, password=None):
     self.endpoint = "http"
     if use_ssl:
       self.endpoint += "s"
