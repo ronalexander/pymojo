@@ -59,3 +59,39 @@ dictionary of scripts, but it will not update the cache.
 
 When you call `get_script` with `use_cache=False`, a successful script retrieval
 will cause the Mojo's cache to be updated with that data.
+
+## Extending Mojo
+
+Pyjojo is merely a remote script execution engine, and is meant to be extended
+to meet the needs of its users. As-is, Pymojo can act on any custom scripts on
+a Jojo server, but the specifics of a Jojo deployment can be easily wrapped up
+in a class that inherits a Mojo.
+
+Realistically, you'll use Jojo for things like remote service control or
+software deployments, but for the sake of example, let's say our Jojo server
+only knows how to execute one script, `echo.sh`, which looks like this:
+
+    #!/bin/bash
+    
+    # -- jojo --
+    # description: echo
+    # param: text - Text to echo
+    # -- jojo --
+    
+    echo ${TEXT}
+    exit 0
+
+We'll make a special kind of Mojo built to run this echo script. We'll call it
+an Echojo.
+
+    class Echojo(Mojo):
+      def __init__(self, endpoint, port=3000, use_ssl=False,
+                   verify=True, user="", password=""):
+        Mojo.__init__(self, endpoint, port, use_ssl, verify, user, password)
+      
+      def echo(self, text):
+        return self.run("echo", {"text" : text})
+
+Simply put, it takes the same Jojo configuration options that Mojo takes,
+and then passes them on to the superconstructor. The `echo` function passes
+data through the superclass's `run` function and passes the result back up.
