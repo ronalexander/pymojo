@@ -56,3 +56,6 @@ connection to the server. When you call `reload()`, this cache is refreshed.
 
 You can run `__get_scripts()` manually if you like. Doing so will get you a
 dictionary of scripts, but it will not update the cache.
+
+When you call `get_script` with `use_cache=False`, a successful script retrieval
+will cause the Mojo's cache to be updated with that data.
