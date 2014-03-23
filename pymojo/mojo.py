@@ -52,7 +52,7 @@ class Mojo:
       resp = self.__call("/scripts", method="GET")
       if resp.status_code == 200:
         return resp.json()['scripts']
-      return resp
+      return None
 
   def reload(self):
     """Reloads the Jojo's script cache, then stashes that data in the Mojo"""
@@ -79,7 +79,4 @@ class Mojo:
     if len(params) > 0:
       data = json.dumps(params)
 
-    resp = self.__call("/scripts/" + name, method="POST", data=data)
-    if resp.status_code == 200:
-      return resp.json()
-    return resp
+    return self.__call("/scripts/" + name, method="POST", data=data)
