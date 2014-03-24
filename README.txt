@@ -1,7 +1,8 @@
 PyMoJo
 ======
 
-A client library for Pyjojo, which lives [here](https://github.com/atarola/pyjojo). Together, they are [Mojojojo](http://i.imgur.com/TW2EiMb.gif)!
+A client library for Pyjojo, which lives [here](https://github.com/atarola/pyjojo).
+Together, they are [Mojojojo](http://i.imgur.com/TW2EiMb.gif)!
 
 ## Usage
 
@@ -14,9 +15,9 @@ signed SSL certificate and HTTP Basic Authentication...
                 user="username", password="A good password")
     
     script = mojo.get_script("my_script")
-    # script is now a JSON object detailing 
+    # script is now a JSON object detailing the remote script
 
-    resp = mojo.run("my_script", params={some_key="some value"})
+    resp = mojo.run("my_script", {some_key="some value"})
     # resp is a requests response object from which you can gather a
     # resp.status_code and get the JSON body with resp.json()
 
@@ -85,9 +86,8 @@ We'll make a special kind of Mojo built to run this echo script. We'll call it
 an Echojo.
 
     class Echojo(Mojo):
-      def __init__(self, endpoint, port=3000, use_ssl=False,
-                   verify=True, user="", password=""):
-        Mojo.__init__(self, endpoint, port, use_ssl, verify, user, password)
+      def __init__(self, **kwargs):
+        Mojo.__init__(self, **kwargs)
       
       def echo(self, text):
         return self.run("echo", {"text" : text})
