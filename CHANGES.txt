@@ -1,4 +1,6 @@
 v0.1, 2014-03-20 -- Initial release.
 v0.2, 2014-03-21 -- Slightly more robust functions
 v0.2.1, 2014-03-21 -- Adding readme
-v0.2.2, 2014-03-23 -- More consistent return values
+v0.2.2, 2014-03-21 -- Adding readme
+v0.2.3, 2014-03-23 -- More consistent return values
+v0.2.4, 2014-03-23 -- Python packaging blows
