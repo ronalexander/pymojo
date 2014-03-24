@@ -3,19 +3,19 @@ import json
 import requests
 
 class Mojo:
-  def __init__(self, endpoint, port=3000, use_ssl=False,
-               verify=True, user=None, password=None):
+  def __init__(self, **kwargs):
     """Constructs a Mojo by connecting to a Jojo and caching its scripts"""
     self.endpoint = "http"
-    if use_ssl:
+    if kwargs.get("use_ssl", False):
       self.endpoint += "s"
-    self.endpoint += "://" + endpoint + ":" + str(port)
+    self.endpoint += "://" + kwargs.get("endpoint", "localhost") + ":" \
+                  + str(kwargs.get("port", 3000))
 
-    self.verify = verify
-    self.user = user
-    self.password = password
+    self.verify = kwargs.get("verify", True)
+    self.user = kwargs.get("user", None)
+    self.password = kwargs.get("password", None)
 
-    if (user is not None) & (password is not None):
+    if (self.user is not None) & (self.password is not None):
       self.auth = True
     else:
       self.auth = False
