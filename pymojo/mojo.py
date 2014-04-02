@@ -80,3 +80,84 @@ class Mojo:
       data = json.dumps(params)
 
     return self.__call("/scripts/" + name, method="POST", data=data)
+
+
+
+def cli(args):
+  opts = {}
+  opts["endpoint"] = args.endpoint
+  opts["port"] = args.port
+  opts["user"] = args.user
+  opts["password"] = args.password
+  opts["use_ssl"] = args.use_ssl
+  opts["verify"] = args.verify
+
+
+  if args.action == "list":
+    ls(opts)
+  elif args.action == "show":
+    show(opts, args)
+  elif args.action == "run":
+    run(opts, args)
+
+def ls(opts):
+  m = Mojo(**opts)
+  for s in m.scripts:
+    print s
+
+def show(opts, args):
+  m = Mojo(**opts)
+  script = m.get_script(args.script)
+  
+  print "Name:", script["name"]
+  print "Lock:", script["lock"]
+  print "Filename:", script["filename"]
+  print "Description:", script["description"]
+  print "Parameters:"
+  for p in script["params"]:
+    print " ", p["name"], ":", p["description"]
+
+def run(opts, args):
+  m = Mojo(**opts)
+
+  params = {}
+  for p in args.params:
+    broken = p.split("=")
+    params[broken[0]] = broken[1]
+
+  resp = m.run(args.script, params)
+  
+  print "Status Code: ", resp.status_code
+
+  print "Headers:"
+  for h in resp.headers:
+    print " ", h, ":", resp.headers[h]
+
+  j = resp.json()
+  print "Script return code:", j["retcode"]
+  print "Stderr:", j["stderr"]
+  print "Stdout:", j["stdout"]
+
+
+if __name__ == "__main__":
+  import argparse
+  parser = argparse.ArgumentParser(description="Mojo command line client")
+  parser.add_argument("-e", "--endpoint", dest="endpoint", default="localhost",
+                      help="The host to connect to a Jojo instance on")
+  parser.add_argument("-p", "--port", dest="port", default=3000,
+                      help="The port Jojo is listening on")
+  parser.add_argument("-s", "--ssl", action="store_true", dest="use_ssl",
+                      default=False, help="Use SSL")
+  parser.add_argument("-i", "--ignore-warnings", action="store_false", dest="verify",
+                      default=False, help="Ignore SSL certificate security warnings")
+  parser.add_argument("-u", "--user", dest="user", default=None,
+                      help="The user to authenticate with")
+  parser.add_argument("-w", "--password", dest="password", default=None,
+                      help="The password to authenticate with")
+  parser.add_argument("action", choices=[ "list", "show", "run" ],
+                      help="The action you want to take")
+  parser.add_argument("script", nargs="?", default=None,
+                      help="For 'show' and 'run' commands, this is the relevant script")
+  parser.add_argument("params", nargs=argparse.REMAINDER,
+                      help="Parameters to pass through the 'run' command in 'key1=value key2=value' format")
+  cli(parser.parse_args())
