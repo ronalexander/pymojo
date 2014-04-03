@@ -139,7 +139,7 @@ def run(opts, args):
   print "Stdout:", j["stdout"]
 
 
-if __name__ == "__main__":
+def main():
   import argparse
   parser = argparse.ArgumentParser(description="Mojo command line client")
   parser.add_argument("-e", "--endpoint", dest="endpoint", default="localhost",
