@@ -24,17 +24,22 @@ Run the "echo" script:
 
     mojo run echo text='Hello, world!'
 
+Reload the Jojo's script listing:
+
+    mojo reload
+
 More officially, mojo works like this...
 
     mojo [ -e endpoint ] [ -p port ] [ -s ] [ -i ] [ -u username ]
          [ -w password ] action [ script ] [ params ]
 
 The various arguments (see below) tell Mojo how to hook up to your Jojo. The
-action is one of these three:
+action is one of these four:
 
  * `list` - Lists all of the scripts the Jojo knows
  * `show` - Shows detail on one of these scripts
  * `run` - Executes a script on the remote system
+ * `reload` - Reloads the Jojo's script listing
 
 The `show` and `run` actions require that you specify a `script` by name, which
 you can discover with a `list`. The `run` action also optionally accepts a

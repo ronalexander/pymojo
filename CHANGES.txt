@@ -7,3 +7,4 @@ v0.2.4, 2014-03-23 -- Python packaging blows
 v0.3, 2014-03-24 -- Mojo constructor now takes **kwargs
 v0.4, 2014-04-03 -- Now with groovy command line client
 v0.4.1, 2014-04-03 -- Updates to make the CLI install/work, and to readmes
+v0.4.2, 2014-04-03 -- CLI now supports reload command

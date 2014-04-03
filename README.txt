@@ -30,6 +30,10 @@ Run the "echo" script::
 
     mojo run echo text='Hello, world!'
 
+Reload the Jojo's script listing::
+ 
+     mojo reload
+
 More officially, mojo works like this::
 
     mojo [ -e endpoint ] [ -p port ] [ -s ] [ -i ] [ -u username ]
@@ -38,14 +42,14 @@ More officially, mojo works like this::
 The various arguments (see below) tell Mojo how to hook up to your Jojo. The
 action is one of these three:
 
- * `list` - Lists all of the scripts the Jojo knows
- * `show` - Shows detail on one of these scripts
- * `run` - Executes a script on the remote system
+ * ``list`` - Lists all of the scripts the Jojo knows
+ * ``show`` - Shows detail on one of these scripts
+ * ``run`` - Executes a script on the remote system
 
-The `show` and `run` actions require that you specify a `script` by name, which
-you can discover with a `list`. The `run` action also optionally accepts a
+The ``show`` and ``run`` actions require that you specify a ``script`` by name, which
+you can discover with a ``list``. The ``run`` action also optionally accepts a
 series of key/value pairs to pass into said script as environment variables.
-These should be written like this: `key1=value1 key2=value2`
+These should be written like this: ``key1=value1 key2=value2``
 
 Arguments
 ---------
@@ -77,13 +81,13 @@ Library
 
 Mojo's constructor accepts the following arguments:
 
- * `endpoint` - The network path to the server. This should be an IP or domain.
+ * ``endpoint`` - The network path to the server. This should be an IP or domain.
    (default: "localhost")
- * `port` - The port Jojo listens on (default: 3000)
- * `use_ssl` - Whether or not to use HTTPS (default: False)
- * `verify` - Whether to bother verifying Jojo's SSL certificate (default: True)
- * `user` - The username for HTTP Basic Auth (default: None)
- * `password` - The password for HTTP Basic Auth (default: None)
+ * ``port`` - The port Jojo listens on (default: 3000)
+ * ``use_ssl`` - Whether or not to use HTTPS (default: False)
+ * ``verify`` - Whether to bother verifying Jojo's SSL certificate (default: True)
+ * ``user`` - The username for HTTP Basic Auth (default: None)
+ * ``password`` - The password for HTTP Basic Auth (default: None)
 
 So if all of those defaults are what you need, then getting your Mojo on is
 quite simple indeed::
@@ -93,7 +97,7 @@ quite simple indeed::
     mojo = Mojo()
 
 As an example of using every last option Mojo's constructor accepts, here's how
-to interact with a Jojo server running on `192.168.0.123:9090`, which uses a
+to interact with a Jojo server running on ``192.168.0.123:9090``, which uses a
 self-signed SSL certificate and HTTP Basic Authentication::
 
     mojo = Mojo(endpoint="192.168.0.123", port=9090, use_ssl=True, verify=False,
@@ -131,7 +135,7 @@ in a class that inherits a Mojo.
 
 Realistically, you'll use Jojo for things like remote service control or
 software deployments, but for the sake of example, let's say our Jojo server
-only knows how to execute one script, `echo.sh`, which looks like this::
+only knows how to execute one script, ``echo.sh``, which looks like this::
 
     #!/bin/bash
     
@@ -154,5 +158,5 @@ an Echojo::
         return self.run("echo", {"text" : text})
 
 Simply put, it takes the same Jojo configuration options that Mojo takes,
-and then passes them on to the superconstructor. The `echo` function passes
-data through the superclass's `run` function and passes the result back up.
+and then passes them on to the superconstructor. The ``echo`` function passes
+data through the superclass's ``run`` function and passes the result back up.

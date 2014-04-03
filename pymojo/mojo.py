@@ -99,6 +99,8 @@ def cli(args):
     show(opts, args)
   elif args.action == "run":
     run(opts, args)
+  elif args.action == "reload":
+    reload(opts)
 
 def ls(opts):
   m = Mojo(**opts)
@@ -138,6 +140,10 @@ def run(opts, args):
   print "Stderr:", j["stderr"]
   print "Stdout:", j["stdout"]
 
+def reload(opts):
+  m = Mojo(**opts)
+  m.reload()
+
 
 def main():
   import argparse
@@ -154,10 +160,13 @@ def main():
                       help="The user to authenticate with")
   parser.add_argument("-w", "--password", dest="password", default=None,
                       help="The password to authenticate with")
-  parser.add_argument("action", choices=[ "list", "show", "run" ],
+  parser.add_argument("action", choices=[ "list", "show", "run", "reload" ],
                       help="The action you want to take")
   parser.add_argument("script", nargs="?", default=None,
                       help="For 'show' and 'run' commands, this is the relevant script")
   parser.add_argument("params", nargs=argparse.REMAINDER,
                       help="Parameters to pass through the 'run' command in 'key1=value key2=value' format")
   cli(parser.parse_args())
+
+if __name__ == "__main__":
+  main()
