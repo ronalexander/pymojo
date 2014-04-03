@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
   name='PyMoJo',
-  version='0.3',
+  version='0.4',
   author='Ryan Jung',
   author_email='gradysghost@gmail.com',
   packages=['pymojo'],
@@ -12,5 +12,10 @@ setup(
   long_description=open('README.txt').read(),
   install_requires=[
     'requests == 1.1.0'
-  ]
+  ],
+  entry_points={
+    'console_scripts' : [
+      'mojo = pymojo.mojo:main'
+    ]
+  }
 )

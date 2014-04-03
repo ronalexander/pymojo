@@ -6,6 +6,13 @@ A generic client library and command line client for Pyjojo, which lives
 Usage
 =====
 
+Installation
+============
+
+Simple::
+
+    pip install pymojo
+
 Command Line Client
 ===================
 
