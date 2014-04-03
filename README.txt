@@ -1,6 +1,6 @@
 A generic client library and command line client for Pyjojo, which lives
-[here](https://github.com/atarola/pyjojo). Together, they are
-[Mojojojo](http://i.imgur.com/TW2EiMb.gif)!
+`here <https://github.com/atarola/pyjojo>`. Together, they are
+`Mojojojo <http://i.imgur.com/TW2EiMb.gif>`!
 
 =====
 Usage
