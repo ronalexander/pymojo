@@ -67,7 +67,7 @@ class Mojo:
       else:
         return None
     else:
-      resp = self.__call("/scripts/" + name)
+      resp = self.__call("/scripts/" + name, method="GET")
       if resp.status_code == 200:
         self.scripts[name] = resp.json()['script']
         return self.scripts[name]
