@@ -82,17 +82,69 @@ class Mojo:
     return self.__call("/scripts/" + name, method="POST", data=data)
 
 
+# Helper function for merging config dictionaries
+def dict_merge(src, dest):
+  # For each item in the source
+  for key, value in src.items():
+    # If the item is a dictionary, merge it
+    if isinstance(value, dict):
+      dict_merge(value, dest.setdefault(key, {}))
+    else:
+      dest[key] = value
+  return dest
 
 def cli(args):
-  opts = {}
-  opts["endpoint"] = args.endpoint
-  opts["port"] = args.port
-  opts["user"] = args.user
-  opts["password"] = args.password
-  opts["use_ssl"] = args.use_ssl
-  opts["verify"] = args.verify
+  import os
+  import sys
+  import yaml
 
+  config_files = [ "/etc/mojo.yml", os.path.expanduser("~") + "/.mojo.yml" ]
+  config = { "environments" : {}, "default_environment" : None}
 
+  # User supplied additional config file?
+  if args.config != None:
+    config_files.append(os.path.expanduser(args.config))
+
+  # Merge the config dictionaries
+  for c in config_files:
+    try:
+      config = dict_merge(yaml.load(open(c, 'r')), config)
+    except:
+      pass
+
+  # Determine correct connection options
+  opts = {
+    "endpoint" : args.endpoint,
+    "port" : args.port,
+    "use_ssl" : args.use_ssl,
+    "verify" : args.verify,
+    "user" : args.user,
+    "password" : None
+  }
+
+  # Override these defaults
+  # User supplied an environment name...
+  if args.env is not None:
+    # ...but it doesn't exist: error/exit.
+    if args.env not in config["environments"]:
+      print "The specified environment is not defined."
+      sys.exit(1)
+    # ...and it is defined: "load" those settings.
+    else:
+      opts = dict_merge(config["environments"][args.env], opts)
+  # User did not supply an environment name...
+  else:
+    # ...but they have a default_environment...
+    if config["default_environment"] is not None:
+      # ...and that environment is defined: "load" those settings.
+      if config["default_environment"] in config["environments"]:
+        opts = config["environments"][config["default_environment"]]
+      # ...but that env doesn't exist: error/exit.
+      else:
+        print "The default environment is not defined."
+        sys.exit(1)
+
+  # Route that action!
   if args.action == "list":
     ls(opts)
   elif args.action == "show":
@@ -101,6 +153,8 @@ def cli(args):
     run(opts, args)
   elif args.action == "reload":
     reload(opts)
+
+  sys.exit(0)
 
 def ls(opts):
   m = Mojo(**opts)
@@ -148,6 +202,8 @@ def reload(opts):
 def main():
   import argparse
   parser = argparse.ArgumentParser(description="Mojo command line client")
+  parser.add_argument("-c", "--config", dest="config", default=None,
+                      help="A YAML configuration file")
   parser.add_argument("-e", "--endpoint", dest="endpoint", default="localhost",
                       help="The host to connect to a Jojo instance on")
   parser.add_argument("-p", "--port", dest="port", default=3000,
@@ -160,6 +216,8 @@ def main():
                       help="The user to authenticate with")
   parser.add_argument("-w", "--password", dest="password", default=None,
                       help="The password to authenticate with")
+  parser.add_argument("-n", "--environment", dest="env", default=None,
+                      help="The name of the configured environment to control")
   parser.add_argument("action", choices=[ "list", "show", "run", "reload" ],
                       help="The action you want to take")
   parser.add_argument("script", nargs="?", default=None,
