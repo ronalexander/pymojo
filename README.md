@@ -30,8 +30,8 @@ Reload the Jojo's script listing:
 
 More officially, mojo works like this...
 
-    mojo [ -e endpoint ] [ -p port ] [ -s ] [ -i ] [ -u username ]
-         [ -w password ] action [ script ] [ params ]
+    mojo [ -c config_file ] [ -e endpoint ] [ -i ] [ -n environment ] [ p port ]
+         [ -s ] [ -u username ] [ -w password ] action [ script ] [ params ]
 
 The various arguments (see below) tell Mojo how to hook up to your Jojo. The
 action is one of these four:
@@ -48,8 +48,19 @@ These should be written like this: `key1=value1 key2=value2`
 
 #### Arguments
 
+    (-c | --config) config_file
+      A YAML configuration file to import (see `Configuration`)
+
     (-e | --endpoint) hostname
       The hostname running your Jojo
+
+    ( -i | --ignore-warnings )
+      Ignore SSL certificate security warnings, such as those in response to
+      self-signed certificates, certs signed by untrusted CAs, and actual
+      unsecure SSL certificates
+
+    ( -n | --environment )
+      Specify a configured environment's saved settings (see `Configuration`)
 
     ( -p | --port) port
       The port Jojo is running on
@@ -57,17 +68,50 @@ These should be written like this: `key1=value1 key2=value2`
     ( -s | --ssl )
       Use SSL encryption
 
-    ( -i | --ignore-warnings)
-      Ignore SSL certificate security warnings, such as those in response to
-      self-signed certificates, certs signed by untrusted CAs, and actual
-      unsecure SSL certificates
-
     ( -u | --user ) user
       Username to use against HTTP Basic Auth
 
     ( -w | --password ) password
       Password to use against HTTP Basic Auth
-      
+
+#### Configuration
+
+You can configure the command line client with YAML files defining connection
+settings (using the options the library's constructor accepts). A sample
+configuration might look like this:
+
+    environments:
+      local:
+        endpoint: "localhost"
+        port: 9090
+        use_ssl: True
+        verify: False
+        user: localUserName
+        password: l0calU$erP@ss
+      bobs-jojo-server:
+        endpoint: "192.168.1.201"
+    default_environment: "local"
+
+That defines two environments, called "local" and "bobs-jojo-server" whose
+settings can be used with the `-n` option, like so:
+
+    mojo -n bobs-jojo-server list
+
+If you don't provide a `-n` option, Mojo will try to use the
+`default_environment`.
+
+Mojo will automatically pull in configration files found at `/etc/mojo.yml` and
+`~/.mojo.yml`, but you can specify an additional config file with `-c`.
+Configurations will be applied in the following order:
+
+ 1. `/etc/mojo.yml`, the global config file
+ 2. `~/.mojo.yml`, the user config file
+ 3. The optional custom config file defined with `-c`
+ 4. Connection options specified with other command line flags
+
+If a config file does not define one of the constructor arguments defined in the
+`Library` section below, the default value for that option will be used.
+
 ### Library
 
 Mojo's constructor accepts the following arguments:
