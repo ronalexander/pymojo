@@ -150,7 +150,7 @@ def cli(args):
       else:
         print "The default environment is not defined."
         sys.exit(1)
-
+  
   # Allow user to override settings from the CLI
   if args.endpoint is not None:
     opts["endpoint"] = args.endpoint
@@ -239,9 +239,9 @@ def main():
   parser.add_argument("-p", "--port", dest="port", default=None,
                       help="The port Jojo is listening on")
   parser.add_argument("-s", "--ssl", action="store_true", dest="use_ssl",
-                      default=False, help="Use SSL")
+                      default=None, help="Use SSL")
   parser.add_argument("-i", "--ignore-warnings", action="store_false", dest="verify",
-                      default=True, help="Ignore SSL certificate security warnings")
+                      default=None, help="Ignore SSL certificate security warnings")
   parser.add_argument("-u", "--user", dest="user", default=None,
                       help="The user to authenticate with")
   parser.add_argument("-w", "--password", dest="password", default=None,
