@@ -5,6 +5,7 @@ import requests
 class Mojo:
   def __init__(self, **kwargs):
     """Constructs a Mojo by connecting to a Jojo and caching its scripts"""
+    # Transform some options into connection data
     self.endpoint = "http"
     if kwargs.get("use_ssl", False):
       self.endpoint += "s"
@@ -20,6 +21,7 @@ class Mojo:
     else:
       self.auth = False
 
+    # Get the script lexicon from the Jojo and cache it
     scripts = self.__get_scripts()
     if isinstance(scripts, dict):
       self.scripts = scripts
@@ -42,10 +44,7 @@ class Mojo:
       headers=headers
     ).prepare()
 
-    resp = s.send(req, verify=self.verify)
-
-    return resp
-
+    return s.send(req, verify=self.verify)
 
   def __get_scripts(self):
       """Gets a collection of scripts that live on the Jojo"""
@@ -75,6 +74,7 @@ class Mojo:
         return None
 
   def run(self, name, params={}):
+    """Runs the named script with the given parameters"""
     data = None
     if len(params) > 0:
       data = json.dumps(params)
@@ -82,24 +82,39 @@ class Mojo:
     return self.__call("/scripts/" + name, method="POST", data=data)
 
 
-# Helper function for merging config dictionaries
+
+# ----- CLI CODE BELOW ----- # 
+
 def dict_merge(src, dest):
+  """Helper function for merging config dictionaries"""
   # For each item in the source
   for key, value in src.items():
     # If the item is a dictionary, merge it
     if isinstance(value, dict):
       dict_merge(value, dest.setdefault(key, {}))
+    # Otherwise, the destination takes the source value
     else:
       dest[key] = value
   return dest
 
 def cli(args):
+  """Run the command line client"""
   import os
   import sys
   import yaml
 
+  # Defaults
   config_files = [ "/etc/mojo.yml", os.path.expanduser("~") + "/.mojo.yml" ]
   config = { "environments" : {}, "default_environment" : None}
+  opts = {}
+  default_opts = {
+    "endpoint" : "localhost",
+    "port" : 3000,
+    "use_ssl" : False,
+    "verify" : True,
+    "user" : None,
+    "password" : None
+  }
 
   # User supplied additional config file?
   if args.config != None:
@@ -111,18 +126,6 @@ def cli(args):
       config = dict_merge(yaml.load(open(c, 'r')), config)
     except:
       pass
-
-  
-  # Start with empty dict for connection options and one full of defaults
-  opts = {}
-  default_opts = {
-    "endpoint" : "localhost",
-    "port" : 3000,
-    "use_ssl" : False,
-    "verify" : True,
-    "user" : None,
-    "password" : None
-  }
 
   # Some logic to determine if we have enough information to run
   # and also to load any preconfigured connection options
@@ -178,11 +181,13 @@ def cli(args):
   sys.exit(0)
 
 def ls(opts):
+  """List available scripts"""
   m = Mojo(**opts)
   for s in m.scripts:
     print s
 
 def show(opts, args):
+  """Show script details"""
   m = Mojo(**opts)
   script = m.get_script(args.script)
   
@@ -195,8 +200,10 @@ def show(opts, args):
     print " ", p["name"], ":", p["description"]
 
 def run(opts, args):
+  """Run a script"""
   m = Mojo(**opts)
 
+  # Parse CLI-given parameters
   params = {}
   for p in args.params:
     broken = p.split("=")
@@ -216,11 +223,13 @@ def run(opts, args):
   print "Stdout:", j["stdout"]
 
 def reload(opts):
+  """Reload the Jojo"""
   m = Mojo(**opts)
   m.reload()
 
 
 def main():
+  """CLI client main entry point"""
   import argparse
   parser = argparse.ArgumentParser(description="Mojo command line client")
   parser.add_argument("-c", "--config", dest="config", default=None,
