@@ -82,17 +82,90 @@ class Mojo:
     return self.__call("/scripts/" + name, method="POST", data=data)
 
 
+# Helper function for merging config dictionaries
+def dict_merge(src, dest):
+  # For each item in the source
+  for key, value in src.items():
+    # If the item is a dictionary, merge it
+    if isinstance(value, dict):
+      dict_merge(value, dest.setdefault(key, {}))
+    else:
+      dest[key] = value
+  return dest
 
 def cli(args):
+  import os
+  import sys
+  import yaml
+
+  config_files = [ "/etc/mojo.yml", os.path.expanduser("~") + "/.mojo.yml" ]
+  config = { "environments" : {}, "default_environment" : None}
+
+  # User supplied additional config file?
+  if args.config != None:
+    config_files.append(os.path.expanduser(args.config))
+
+  # Merge the config dictionaries
+  for c in config_files:
+    try:
+      config = dict_merge(yaml.load(open(c, 'r')), config)
+    except:
+      pass
+
+  
+  # Start with empty dict for connection options and one full of defaults
   opts = {}
-  opts["endpoint"] = args.endpoint
-  opts["port"] = args.port
-  opts["user"] = args.user
-  opts["password"] = args.password
-  opts["use_ssl"] = args.use_ssl
-  opts["verify"] = args.verify
+  default_opts = {
+    "endpoint" : "localhost",
+    "port" : 3000,
+    "use_ssl" : False,
+    "verify" : True,
+    "user" : None,
+    "password" : None
+  }
 
+  # Some logic to determine if we have enough information to run
+  # and also to load any preconfigured connection options
 
+  # User supplied an environment name...
+  if args.env is not None:
+    # ...but it doesn't exist: error/exit.
+    if args.env not in config["environments"]:
+      print "The specified environment is not defined."
+      sys.exit(1)
+    # ...and it is defined: "load" those settings.
+    else:
+      opts = config["environments"][args.env]
+  # User did not supply an environment name...
+  else:
+    # ...but they have a default_environment...
+    if config["default_environment"] is not None:
+      # ...and that environment is defined: "load" those settings.
+      if config["default_environment"] in config["environments"]:
+        opts = config["environments"][config["default_environment"]]
+      # ...but that env doesn't exist: error/exit.
+      else:
+        print "The default environment is not defined."
+        sys.exit(1)
+
+  # Allow user to override settings from the CLI
+  if args.endpoint is not None:
+    opts["endpoint"] = args.endpoint
+  if args.port is not None:
+    opts["port"] = args.port
+  if args.use_ssl is not None:
+    opts["use_ssl"] = args.use_ssl
+  if args.verify is not None:
+    opts["verify"] = args.verify
+  if args.user is not None:
+    opts["user"] = args.user
+  if args.password is not None:
+    opts["password"] = args.password
+
+  # Bring in any missing values at their defaults
+  opts = dict_merge(opts, default_opts)
+
+  # Route that action!
   if args.action == "list":
     ls(opts)
   elif args.action == "show":
@@ -101,6 +174,8 @@ def cli(args):
     run(opts, args)
   elif args.action == "reload":
     reload(opts)
+
+  sys.exit(0)
 
 def ls(opts):
   m = Mojo(**opts)
@@ -148,18 +223,22 @@ def reload(opts):
 def main():
   import argparse
   parser = argparse.ArgumentParser(description="Mojo command line client")
-  parser.add_argument("-e", "--endpoint", dest="endpoint", default="localhost",
+  parser.add_argument("-c", "--config", dest="config", default=None,
+                      help="A YAML configuration file")
+  parser.add_argument("-e", "--endpoint", dest="endpoint", default=None,
                       help="The host to connect to a Jojo instance on")
-  parser.add_argument("-p", "--port", dest="port", default=3000,
+  parser.add_argument("-p", "--port", dest="port", default=None,
                       help="The port Jojo is listening on")
   parser.add_argument("-s", "--ssl", action="store_true", dest="use_ssl",
                       default=False, help="Use SSL")
   parser.add_argument("-i", "--ignore-warnings", action="store_false", dest="verify",
-                      default=False, help="Ignore SSL certificate security warnings")
+                      default=True, help="Ignore SSL certificate security warnings")
   parser.add_argument("-u", "--user", dest="user", default=None,
                       help="The user to authenticate with")
   parser.add_argument("-w", "--password", dest="password", default=None,
                       help="The password to authenticate with")
+  parser.add_argument("-n", "--environment", dest="env", default=None,
+                      help="The name of the configured environment to control")
   parser.add_argument("action", choices=[ "list", "show", "run", "reload" ],
                       help="The action you want to take")
   parser.add_argument("script", nargs="?", default=None,
