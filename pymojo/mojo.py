@@ -112,17 +112,21 @@ def cli(args):
     except:
       pass
 
-  # Determine correct connection options
-  opts = {
-    "endpoint" : args.endpoint,
-    "port" : args.port,
-    "use_ssl" : args.use_ssl,
-    "verify" : args.verify,
-    "user" : args.user,
+  
+  # Start with empty dict for connection options and one full of defaults
+  opts = {}
+  default_opts = {
+    "endpoint" : "localhost",
+    "port" : 3000,
+    "use_ssl" : False,
+    "verify" : True,
+    "user" : None,
     "password" : None
   }
 
-  # Override these defaults
+  # Some logic to determine if we have enough information to run
+  # and also to load any preconfigured connection options
+
   # User supplied an environment name...
   if args.env is not None:
     # ...but it doesn't exist: error/exit.
@@ -131,7 +135,7 @@ def cli(args):
       sys.exit(1)
     # ...and it is defined: "load" those settings.
     else:
-      opts = dict_merge(config["environments"][args.env], opts)
+      opts = config["environments"][args.env]
   # User did not supply an environment name...
   else:
     # ...but they have a default_environment...
@@ -143,6 +147,23 @@ def cli(args):
       else:
         print "The default environment is not defined."
         sys.exit(1)
+
+  # Allow user to override settings from the CLI
+  if args.endpoint is not None:
+    opts["endpoint"] = args.endpoint
+  if args.port is not None:
+    opts["port"] = args.port
+  if args.use_ssl is not None:
+    opts["use_ssl"] = args.use_ssl
+  if args.verify is not None:
+    opts["verify"] = args.verify
+  if args.user is not None:
+    opts["user"] = args.user
+  if args.password is not None:
+    opts["password"] = args.password
+
+  # Bring in any missing values at their defaults
+  opts = dict_merge(opts, default_opts)
 
   # Route that action!
   if args.action == "list":
@@ -204,14 +225,14 @@ def main():
   parser = argparse.ArgumentParser(description="Mojo command line client")
   parser.add_argument("-c", "--config", dest="config", default=None,
                       help="A YAML configuration file")
-  parser.add_argument("-e", "--endpoint", dest="endpoint", default="localhost",
+  parser.add_argument("-e", "--endpoint", dest="endpoint", default=None,
                       help="The host to connect to a Jojo instance on")
-  parser.add_argument("-p", "--port", dest="port", default=3000,
+  parser.add_argument("-p", "--port", dest="port", default=None,
                       help="The port Jojo is listening on")
   parser.add_argument("-s", "--ssl", action="store_true", dest="use_ssl",
                       default=False, help="Use SSL")
   parser.add_argument("-i", "--ignore-warnings", action="store_false", dest="verify",
-                      default=False, help="Ignore SSL certificate security warnings")
+                      default=True, help="Ignore SSL certificate security warnings")
   parser.add_argument("-u", "--user", dest="user", default=None,
                       help="The user to authenticate with")
   parser.add_argument("-w", "--password", dest="password", default=None,
