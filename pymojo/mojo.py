@@ -203,6 +203,9 @@ def show(opts, args):
     print "Parameters:"
     for param in script["params"]:
         print " ", param["name"], ":", param["description"]
+    print "Filtered parameters:"
+    for param in script["filtered_params"]:
+        print " ", param
 
 def run(opts, args):
     """Run a script"""
