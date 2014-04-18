@@ -188,7 +188,7 @@ def cli(args):
 def list_scripts(opts):
     """List available scripts"""
     mojo = Mojo(**opts)
-    for script in mojo.scripts:
+    for script in sorted(mojo.scripts):
         print script
 
 def show(opts, args):
@@ -200,12 +200,15 @@ def show(opts, args):
     print "Lock:", script["lock"]
     print "Filename:", script["filename"]
     print "Description:", script["description"]
-    print "Parameters:"
-    for param in script["params"]:
-        print " ", param["name"], ":", param["description"]
-    print "Filtered parameters:"
-    for param in script["filtered_params"]:
-        print " ", param
+    if "params" in script:
+        print "Parameters:"
+        for param in sorted(script["params"]):
+            print " ", param["name"], ":", param["description"]
+
+    if "filtered_params" in script:
+        print "Filtered parameters:"
+        for param in script["filtered_params"]:
+            print " ", param
 
 def run(opts, args):
     """Run a script"""
