@@ -11,3 +11,5 @@ v0.4.2, 2014-04-03 -- CLI now supports reload command
 v0.5.0, 2014-04-08 -- CLI now allows for saved environment configurations
 v0.5.1, 2014-04-08 -- Fixed bug for unexpected SSL flag
 v0.5.2, 2014-04-09 -- List function now lists filtered parameters
+v0.5.3, 2014-04-18 -- List and show functions now sort the output, absence of
+                      filtered_params no longer dumps stacktraces
