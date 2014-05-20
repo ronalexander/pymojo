@@ -20,12 +20,13 @@ class Mojo(object):
 
         if (self.user is not None) & (self.password is not None):
             self.auth = True
+            self.unauthorized = False
         else:
             self.auth = False
 
         # Get the script lexicon from the Jojo and cache it
         scripts = self.__get_scripts()
-        if isinstance(scripts, dict):
+        if scripts != None:
             self.scripts = scripts
         else:
             self.scripts = {}
@@ -47,13 +48,18 @@ class Mojo(object):
             headers=headers
         ).prepare()
 
-        return session.send(req, verify=self.verify)
+        response = session.send(req, verify=self.verify)
+        if response.status_code == 401:
+            self.unauthorized = True
+
+        return response
 
     def __get_scripts(self):
         """Gets a collection of scripts that live on the Jojo"""
         resp = self.__call("/scripts", method="GET")
         if resp.status_code == 200:
             return resp.json()['scripts']
+
         return None
 
     def reload(self):
@@ -188,27 +194,34 @@ def cli(args):
 def list_scripts(opts):
     """List available scripts"""
     mojo = Mojo(**opts)
-    for script in sorted(mojo.scripts):
-        print script
+    if mojo.auth and mojo.unauthorized:
+        print("Authentication failed")
+    else:
+        for script in sorted(mojo.scripts):
+            print script
 
 def show(opts, args):
     """Show script details"""
     mojo = Mojo(**opts)
     script = mojo.get_script(args.script)
+    
 
-    print "Name:", script["name"]
-    print "Lock:", script["lock"]
-    print "Filename:", script["filename"]
-    print "Description:", script["description"]
-    if "params" in script:
-        print "Parameters:"
-        for param in sorted(script["params"]):
-            print " ", param["name"], ":", param["description"]
+    if mojo.auth and mojo.unauthorized:
+        print("Authentication failed")
+    else:
+        print "Name:", script["name"]
+        print "Lock:", script["lock"]
+        print "Filename:", script["filename"]
+        print "Description:", script["description"]
+        if "params" in script:
+            print "Parameters:"
+            for param in sorted(script["params"]):
+                print " ", param["name"], ":", param["description"]
 
-    if "filtered_params" in script:
-        print "Filtered parameters:"
-        for param in script["filtered_params"]:
-            print " ", param
+        if "filtered_params" in script:
+            print "Filtered parameters:"
+            for param in script["filtered_params"]:
+                print " ", param
 
 def run(opts, args):
     """Run a script"""
@@ -222,25 +235,26 @@ def run(opts, args):
 
     resp = mojo.run(args.script, params)
 
-    print "Status Code: ", resp.status_code
+    if mojo.auth and mojo.unauthorized:
+        print("Authentication failed")
+    else:
+        print "Status Code: ", resp.status_code
 
-    print "Headers:"
-    for header in resp.headers:
-        print " ", header, ":", resp.headers[header]
+        print "Headers:"
+        for header in resp.headers:
+            print " ", header, ":", resp.headers[header]
 
-    j = resp.json()
-    print "Script return code:", j["retcode"]
-    print "Stderr:", j["stderr"]
-    print "Stdout:", j["stdout"]
+        j = resp.json()
+        print "Script return code:", j["retcode"]
+        print "Stderr:", j["stderr"]
+        print "Stdout:", j["stdout"]
 
 def reload_jojo(opts):
     """Reload the Jojo"""
     mojo = Mojo(**opts)
     mojo.reload()
 
-
-def main():
-    """CLI client main entry point"""
+def create_argument_parser():
     import argparse
     parser = argparse.ArgumentParser(description="Mojo command line client")
     parser.add_argument("-c", "--config", dest="config", default=None,
@@ -266,6 +280,11 @@ def main():
         help="For 'show' and 'run' commands, this is the relevant script")
     parser.add_argument("params", nargs=argparse.REMAINDER,
         help="Params to pass through the 'run' command in 'key1=value' format")
+
+
+def main():
+    """CLI client main entry point"""
+    parser = create_argument_parser()
     cli(parser.parse_args())
 
 if __name__ == "__main__":
