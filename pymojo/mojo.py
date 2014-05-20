@@ -72,7 +72,7 @@ class Mojo(object):
         """Gets data about a script in the Jojo, from the cache or from the
            Jojo"""
         if use_cache:
-            if self.scripts[name] is not None:
+            if name in self.scripts:
                 return self.scripts[name]
             else:
                 return None
@@ -280,6 +280,7 @@ def create_argument_parser():
         help="For 'show' and 'run' commands, this is the relevant script")
     parser.add_argument("params", nargs=argparse.REMAINDER,
         help="Params to pass through the 'run' command in 'key1=value' format")
+    return parser
 
 
 def main():
