@@ -66,14 +66,15 @@ class Mojo(object):
         """Reloads the Jojo's script cache, then stashes that data in the
            Mojo"""
         response = self.__call("/reload", method="POST")
-        self.scripts = self.__get_scripts()
-        
+
         if response.status_code == 200:
+            self.scripts = self.__get_scripts()
             return True
         elif response.status_code == 401:
             return False
         else:
             return None
+        
 
     def get_script(self, name, use_cache=True):
         """Gets data about a script in the Jojo, from the cache or from the
