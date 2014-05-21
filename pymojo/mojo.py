@@ -65,8 +65,15 @@ class Mojo(object):
     def reload(self):
         """Reloads the Jojo's script cache, then stashes that data in the
            Mojo"""
-        self.__call("/reload", method="POST")
+        response = self.__call("/reload", method="POST")
         self.scripts = self.__get_scripts()
+        
+        if response.status_code == 200:
+            return True
+        elif response.status_code == 401:
+            return False
+        else:
+            return None
 
     def get_script(self, name, use_cache=True):
         """Gets data about a script in the Jojo, from the cache or from the
@@ -252,7 +259,15 @@ def run(opts, args):
 def reload_jojo(opts):
     """Reload the Jojo"""
     mojo = Mojo(**opts)
-    mojo.reload()
+    result = mojo.reload()
+    
+    if result == True:
+        print "Reload successful!"
+    elif result == False:
+        print "Authentication failed"
+    elif type(result) == int:
+        print("The Jojo responded with an unexpected status code: {code}" \
+          .format(code=result))
 
 def create_argument_parser():
     import argparse
