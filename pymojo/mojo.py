@@ -1,18 +1,28 @@
 """A class and CLI client to interact with a Pyjojo instance"""
+import argparse
 import base64
 import json
+import os
 import requests
+import sys
+import yaml
+
 
 class Mojo(object):
     """A class used to interact with a Pyjojo instance"""
     def __init__(self, **kwargs):
         """Constructs a Mojo by connecting to a Jojo and caching its scripts"""
         # Transform some options into connection data
-        self.endpoint = "http"
+        url = "http://{}"
         if kwargs.get("use_ssl", False):
-            self.endpoint += "s"
-        self.endpoint += "://" + kwargs.get("endpoint", "localhost") + ":" \
-                                    + str(kwargs.get("port", 3000))
+            url = "https://{}"
+
+        self.endpoint = url.format(
+            "{}:{}".format(
+                kwargs.get("endpoint", "localhost"),
+                kwargs.get("port", 3000)
+            )
+        )
 
         self.verify = kwargs.get("verify", True)
         self.user = kwargs.get("user", None)
@@ -25,25 +35,21 @@ class Mojo(object):
             self.auth = False
 
         # Get the script lexicon from the Jojo and cache it
-        scripts = self.__get_scripts()
-        if scripts != None:
-            self.scripts = scripts
-        else:
-            self.scripts = {}
+        self.scripts = self.__get_scripts()
 
     def __call(self, path, method="GET", data=""):
         """Makes a call to a Jojo"""
         session = requests.Session()
-        headers = {
-            "Content-Type" : "application/json"
-        }
+        headers = {"Content-Type": "application/json"}
 
         if self.auth:
-            headers["Authorization"] = "Basic " + \
-                base64.b64encode(self.user + ":" + self.password)
+            headers["Authorization"] = "Basic {}".format(base64.b64encode(
+                "{}:{}".format(self.user, self.password))
+            )
 
-        req = requests.Request(method,
-            self.endpoint + path,
+        req = requests.Request(
+            method,
+            "{}{}".format(self.endpoint, path),
             data=data,
             headers=headers
         ).prepare()
@@ -60,7 +66,7 @@ class Mojo(object):
         if resp.status_code == 200:
             return resp.json()['scripts']
 
-        return None
+        return {}
 
     def reload(self):
         """Reloads the Jojo's script cache, then stashes that data in the
@@ -74,7 +80,6 @@ class Mojo(object):
             return False
         else:
             return None
-        
 
     def get_script(self, name, use_cache=True):
         """Gets data about a script in the Jojo, from the cache or from the
@@ -85,7 +90,7 @@ class Mojo(object):
             else:
                 return None
         else:
-            resp = self.__call("/scripts/" + name, method="GET")
+            resp = self.__call("/scripts/{}".format(name), method="GET")
             if resp.status_code == 200:
                 self.scripts[name] = resp.json()['script']
                 return self.scripts[name]
@@ -98,11 +103,12 @@ class Mojo(object):
         if params is not None:
             data = json.dumps(params)
 
-        return self.__call("/scripts/" + name, method="POST", data=data)
-
-
+        return self.__call(
+            "/scripts/{}".format(name), method="POST", data=data
+        )
 
 # ----- CLI CODE BELOW ----- #
+
 
 def dict_merge(src, dest):
     """Helper function for merging config dictionaries"""
@@ -116,27 +122,28 @@ def dict_merge(src, dest):
             dest[key] = value
     return dest
 
+
 def cli(args):
     """Run the command line client"""
-    import os
-    import sys
-    import yaml
 
     # Defaults
-    config_files = ["/etc/mojo.yml", os.path.expanduser("~") + "/.mojo.yml"]
-    config = {"environments" : {}, "default_environment" : None}
+    config_files = [
+        "/etc/mojo.yml",
+        "{}/.mojo.yml".format(os.path.expanduser("~"))
+    ]
+    config = {"environments": {}, "default_environment": None}
     opts = {}
     default_opts = {
-        "endpoint" : "localhost",
-        "port" : 3000,
-        "use_ssl" : False,
-        "verify" : True,
-        "user" : None,
-        "password" : None
+        "endpoint": "localhost",
+        "port": 3000,
+        "use_ssl": False,
+        "verify": True,
+        "user": None,
+        "password": None
     }
 
     # User supplied additional config file?
-    if args.config != None:
+    if args.config is not None:
         config_files.append(os.path.expanduser(args.config))
 
     # Merge the config dictionaries
@@ -153,7 +160,7 @@ def cli(args):
     if args.env is not None:
         # ...but it doesn't exist: error/exit.
         if args.env not in config["environments"]:
-            print "The specified environment is not defined."
+            print("The specified environment is not defined.")
             sys.exit(1)
         # ...and it is defined: "load" those settings.
         else:
@@ -167,7 +174,7 @@ def cli(args):
                 opts = config["environments"][config["default_environment"]]
             # ...but that env doesn't exist: error/exit.
             else:
-                print "The default environment is not defined."
+                print("The default environment is not defined.")
                 sys.exit(1)
 
     # Allow user to override settings from the CLI
@@ -199,6 +206,7 @@ def cli(args):
 
     sys.exit(0)
 
+
 def list_scripts(opts):
     """List available scripts"""
     mojo = Mojo(**opts)
@@ -206,30 +214,31 @@ def list_scripts(opts):
         print("Authentication failed")
     else:
         for script in sorted(mojo.scripts):
-            print script
+            print(script)
+
 
 def show(opts, args):
     """Show script details"""
     mojo = Mojo(**opts)
     script = mojo.get_script(args.script)
-    
 
     if mojo.auth and mojo.unauthorized:
         print("Authentication failed")
     else:
-        print "Name:", script["name"]
-        print "Lock:", script["lock"]
-        print "Filename:", script["filename"]
-        print "Description:", script["description"]
+        print("Name: {}".format(script["name"]))
+        print("Lock: {}".format(script["lock"]))
+        print("Filename: {}".format(script["filename"]))
+        print("Description: {}".format(script["description"]))
         if "params" in script:
-            print "Parameters:"
+            print("Parameters:")
             for param in sorted(script["params"]):
-                print " ", param["name"], ":", param["description"]
+                print(" {}: {}".format(param["name"], param["description"]))
 
         if "filtered_params" in script:
-            print "Filtered parameters:"
+            print("Filtered parameters:")
             for param in script["filtered_params"]:
-                print " ", param
+                print(" ", param)
+
 
 def run(opts, args):
     """Run a script"""
@@ -246,56 +255,111 @@ def run(opts, args):
     if mojo.auth and mojo.unauthorized:
         print("Authentication failed")
     else:
-        print "Status Code: ", resp.status_code
+        print("Status Code: {}".format(resp.status_code))
 
-        print "Headers:"
+        print("Headers:")
         for header in resp.headers:
-            print " ", header, ":", resp.headers[header]
+            print(" {}: {}".format(header, resp.headers[header]))
 
         j = resp.json()
-        print "Script return code:", j["retcode"]
-        print "Stderr:", j["stderr"]
-        print "Stdout:", j["stdout"]
+        print("Script return code: {}".format(j["retcode"]))
+        print("Stderr: {}".format(j["stderr"]))
+        print("Stdout: {}".format(j["stdout"]))
+
 
 def reload_jojo(opts):
     """Reload the Jojo"""
     mojo = Mojo(**opts)
     result = mojo.reload()
-    
-    if result == True:
-        print "Reload successful!"
-    elif result == False:
-        print "Authentication failed"
+
+    if result:
+        print("Reload successful!")
+    elif not result:
+        print("Authentication failed")
     elif type(result) == int:
-        print("The Jojo responded with an unexpected status code: {code}" \
-          .format(code=result))
+        print(
+            "The Jojo responded with an unexpected status code: {code}".
+            format(code=result)
+        )
+
 
 def create_argument_parser():
-    import argparse
+
     parser = argparse.ArgumentParser(description="Mojo command line client")
-    parser.add_argument("-c", "--config", dest="config", default=None,
-        help="A YAML configuration file")
-    parser.add_argument("-e", "--endpoint", dest="endpoint", default=None,
-        help="The host to connect to a Jojo instance on")
-    parser.add_argument("-p", "--port", dest="port", default=None,
-        help="The port Jojo is listening on")
-    parser.add_argument("-s", "--ssl", action="store_true", dest="use_ssl",
-        default=None, help="Use SSL")
-    parser.add_argument("-i", "--ignore-warnings", action="store_false",
-        dest="verify", default=None,
-        help="Ignore SSL certificate security warnings")
-    parser.add_argument("-u", "--user", dest="user", default=None,
-        help="The user to authenticate with")
-    parser.add_argument("-w", "--password", dest="password", default=None,
-        help="The password to authenticate with")
-    parser.add_argument("-n", "--environment", dest="env", default=None,
-        help="The name of the configured environment to control")
-    parser.add_argument("action", choices=["list", "show", "run", "reload"],
-        help="The action you want to take")
-    parser.add_argument("script", nargs="?", default=None,
-        help="For 'show' and 'run' commands, this is the relevant script")
-    parser.add_argument("params", nargs=argparse.REMAINDER,
-        help="Params to pass through the 'run' command in 'key1=value' format")
+    parser.add_argument(
+        "-c",
+        "--config",
+        dest="config",
+        default=None,
+        help="A YAML configuration file"
+    )
+    parser.add_argument(
+        "-e",
+        "--endpoint",
+        dest="endpoint",
+        default=None,
+        help="The host to connect to a Jojo instance on"
+    )
+    parser.add_argument(
+        "-p",
+        "--port",
+        dest="port",
+        default=None,
+        help="The port Jojo is listening on"
+    )
+    parser.add_argument(
+        "-s",
+        "--ssl",
+        action="store_true",
+        dest="use_ssl",
+        default=None,
+        help="Use SSL"
+    )
+    parser.add_argument(
+        "-i",
+        "--ignore-warnings",
+        action="store_false",
+        dest="verify",
+        default=None,
+        help="Ignore SSL certificate security warnings"
+    )
+    parser.add_argument(
+        "-u",
+        "--user",
+        dest="user",
+        default=None,
+        help="The user to authenticate with"
+    )
+    parser.add_argument(
+        "-w",
+        "--password",
+        dest="password",
+        default=None,
+        help="The password to authenticate with"
+    )
+    parser.add_argument(
+        "-n",
+        "--environment",
+        dest="env",
+        default=None,
+        help="The name of the configured environment to control"
+    )
+    parser.add_argument(
+        "action",
+        choices=["list", "show", "run", "reload"],
+        help="The action you want to take"
+    )
+    parser.add_argument(
+        "script",
+        nargs="?",
+        default=None,
+        help="For 'show' and 'run' commands, this is the relevant script"
+    )
+    parser.add_argument(
+        "params",
+        nargs=argparse.REMAINDER,
+        help="Params to pass through the 'run' command in 'key1=value' format"
+    )
     return parser
 
 
