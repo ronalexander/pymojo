@@ -1,5 +1,6 @@
 import argparse
-from pymojo import cli
+
+import cli
 
 def create_argument_parser():
     parser = argparse.ArgumentParser(description="Mojo command line client")
