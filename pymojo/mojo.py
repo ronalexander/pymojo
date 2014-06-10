@@ -30,12 +30,14 @@ class Mojo(object):
 
         if (self.user is not None) & (self.password is not None):
             self.auth = True
-            self.unauthorized = False
         else:
             self.auth = False
 
+        self.unauthorized = False
+
         # Get the script lexicon from the Jojo and cache it
         self.scripts = self.__get_scripts()
+
 
     def __call(self, path, method="GET", data=""):
         """Makes a call to a Jojo"""
@@ -63,8 +65,12 @@ class Mojo(object):
     def __get_scripts(self):
         """Gets a collection of scripts that live on the Jojo"""
         resp = self.__call("/scripts", method="GET")
+        print("Status code: {0}".format(resp.status_code))
         if resp.status_code == 200:
             return resp.json()['scripts']
+        elif resp.status_code == 401:
+            self.unauthorized = True
+            resp.raise_for_status()
 
         return {}
 
@@ -370,4 +376,3 @@ def main():
 
 if __name__ == "__main__":
     main()
->>>>>>> master

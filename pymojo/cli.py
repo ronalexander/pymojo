@@ -2,7 +2,7 @@ import os
 import sys
 import yaml
 
-from pymojo.mojo import Mojo
+from mojo import Mojo
 
 def dict_merge(src, dest):
     """Helper function for merging config dictionaries"""
@@ -83,7 +83,7 @@ def cli(args):
  
     # Bring in any missing values at their defaults
     opts = dict_merge(opts, default_opts)
- 
+
     # Route that action!
     if args.action == "list":
         list_scripts(opts)
