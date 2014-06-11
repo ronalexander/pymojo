@@ -36,7 +36,7 @@ class Mojo(object):
         self.unauthorized = False
 
         # Get the script lexicon from the Jojo and cache it
-        self.scripts = self.__get_scripts()
+        self.scripts = self.get_scripts()
 
     def __call(self, path, method="GET", data=""):
         """Makes a call to a Jojo"""
@@ -61,7 +61,7 @@ class Mojo(object):
 
         return response
 
-    def __get_scripts(self):
+    def get_scripts(self):
         """Gets a collection of scripts that live on the Jojo"""
         resp = self.__call("/scripts", method="GET")
         if resp.status_code == 200:
@@ -78,7 +78,7 @@ class Mojo(object):
         response = self.__call("/reload", method="POST")
 
         if response.status_code == 200:
-            self.scripts = self.__get_scripts()
+            self.scripts = self.get_scripts()
             return True
         elif response.status_code == 401:
             return False
