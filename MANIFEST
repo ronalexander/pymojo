@@ -3,4 +3,6 @@ CHANGES.txt
 README.txt
 setup.py
 pymojo/__init__.py
+pymojo/cli.py
+pymojo/cli_bin.py
 pymojo/mojo.py
