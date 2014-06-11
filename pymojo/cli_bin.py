@@ -65,6 +65,25 @@ def create_argument_parser():
         help="The name of the configured environment to control"
     )
     parser.add_argument(
+        "-b",
+        "--list-boolean",
+        choices=["and", "or", "not"],
+        dest="boolean",
+        default=None,
+        help="""When listing with a script tag filter, this specifies the
+             boolean operator to use describing the tag filter.
+             """
+    )
+    parser.add_argument(
+        "-t",
+        "--tags",
+        dest="tags",
+        default=None,
+        help="""When listing with a script tag filter, this specifies the list
+             of tags to filter by. Also see the -b flag.
+             """
+    )
+    parser.add_argument(
         "action",
         choices=["list", "show", "run", "reload"],
         help="The action you want to take"

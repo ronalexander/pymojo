@@ -61,9 +61,12 @@ class Mojo(object):
 
         return response
 
-    def get_scripts(self):
+    def get_scripts(self, param=None, tags=None):
         """Gets a collection of scripts that live on the Jojo"""
-        resp = self.__call("/scripts", method="GET")
+        route = "/scripts"
+        if param is not None and tags is not None:
+            route += "?{}={}".format(param, tags)
+        resp = self.__call(route, method="GET")
         if resp.status_code == 200:
             return resp.json()['scripts']
         elif resp.status_code == 401:
