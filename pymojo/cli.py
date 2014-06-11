@@ -158,8 +158,8 @@ def run(opts, args):
         for header in resp.headers:
             print(" {}: {}".format(header, resp.headers[header]))
         j = resp.json()
-        print("Script return code: {}".format(j["retcode"]))
-        if j["stderr"]:
+        print("Script return code: {}".format(resp.status_code))
+        if "stderr" in j:
             print("Stderr:")
             for line in j["stderr"]:
                 print(" {}".format(line))
