@@ -115,22 +115,27 @@ def show(opts, args):
     mojo = Mojo(**opts)
     script = mojo.get_script(args.script)
 
-    if mojo.auth and mojo.unauthorized:
+    if mojo.unauthorized:
         print("Authentication failed")
     else:
         print("Name: {}".format(script["name"]))
-        print("Lock: {}".format(script["lock"]))
-        print("Filename: {}".format(script["filename"]))
         print("Description: {}".format(script["description"]))
+        print("Filename: {}".format(script["filename"]))
+        print("HTTP Method: {}".format(script["http_method"]))
+        print("Output Type: {}".format(script["output"]))
         if "params" in script:
             print("Parameters:")
             for param in sorted(script["params"]):
                 print(" {}: {}".format(param["name"], param["description"]))
-
         if "filtered_params" in script:
             print("Filtered parameters:")
             for param in script["filtered_params"]:
                 print(" {}".format(param))
+        if "tags" in script:
+            print("Tags:")
+            for tag in sorted(script["tags"]):
+                print(" {}".format(tag))
+        print("Lock: {}".format(script["lock"]))
 
 
 def run(opts, args):
@@ -154,9 +159,17 @@ def run(opts, args):
             print(" {}: {}".format(header, resp.headers[header]))
         j = resp.json()
         print("Script return code: {}".format(j["retcode"]))
-        print("Stderr: {}".format(j["stderr"]))
-        print("Stdout: {}".format(j["stdout"]))
-
+        if j["stderr"]:
+            print("Stderr:")
+            for line in j["stderr"]:
+                print(" {}".format(line))
+        print("Stdout:")
+        for line in j["stdout"]:
+            print(" {}".format(line))
+        if len(j["return_values"]) > 0:
+            print("Return Values:")
+            for key in sorted(j["return_values"]):
+                print(" {}: {}".format(key, j["return_values"][key]))
 
 def reload_jojo(opts):
     """Reload the Jojo"""

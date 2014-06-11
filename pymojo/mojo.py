@@ -94,7 +94,7 @@ class Mojo(object):
             else:
                 return None
         else:
-            resp = self.__call("/scripts/{}".format(name), method="GET")
+            resp = self.__call("/scripts/{}".format(name), method="OPTIONS")
             if resp.status_code == 200:
                 self.scripts[name] = resp.json()['script']
                 return self.scripts[name]
@@ -104,9 +104,16 @@ class Mojo(object):
     def run(self, name, params=None):
         """Runs the named script with the given parameters"""
         data = None
+        if name not in self.scripts:
+            script = get_script(name, use_cace=False)
+            if script is None:
+                print("No script named {} exists on the server".format(name))
+
         if params is not None:
             data = json.dumps(params)
 
         return self.__call(
-            "/scripts/{}".format(name), method="POST", data=data
+            "/scripts/{}".format(name),
+            method=self.scripts[name]['http_method'],
+            data=data
         )
