@@ -37,8 +37,9 @@ Reload the Jojo's script listing:
 
 More officially, mojo works like this...
 
-    mojo [ -c config_file ] [ -e endpoint ] [ -i ] [ -n environment ] [ p port ]
-         [ -s ] [ -u username ] [ -w password ] action [ script ] [ params ]
+    mojo [ -b boolean ] [ -c config_file ] [ -e endpoint ] [ -i ]
+         [ -n environment ] [ p port ] [ -s ] [ -t tag1,tag2,tagN ]
+         [ -u username ] [ -w password ] action [ script ] [ params ]
 
 The various arguments (see below) tell Mojo how to hook up to your Jojo. The
 action is one of these four:
@@ -80,6 +81,13 @@ These should be written like this: `key1=value1 key2=value2`
 
     ( -w | --password ) password
       Password to use against HTTP Basic Auth
+
+    ( -b | --list-boolean ) and|or|not
+      The boolean operator to apply to script listing tag filters
+
+    ( -t | --tags ) tag1,tag2,tagN
+      A comma-separated list of tags which affects list output. Also see the -b
+      flag.
 
 #### Configuration
 
@@ -158,6 +166,16 @@ Once you have a Mojo, it's easy to use:
     # Get script details, forcing a refresh of this data from the Jojo server
     script = mojo.get_script("my_script", False)
     # script is the script JSON data, and Mojo's cache has been updated
+
+    # Get a list of scripts with the 'foo' or 'bar' tag
+    scripts = mojo.get_scripts(param="any_tags", tags="foo,bar")
+    # Get a list of scripts with both the 'foo' and 'bar' tags
+    scripts = mojo.get_scripts(param="tags", tags="foo,bar")
+    # Get a list of scripts with neither the 'foo' nor 'bar' tags
+    scripts = mojo.get_scripts(param="not_tags", tags="foo,bar")
+    
+    # Just get the names of scripts with a 'foo' or 'bar' tag
+    script_names = mojo.get_script_names(param="any_tags", tags="foo,bar")
 
     # Run a Jojo script
     resp = mojo.run("my_script", {foo:"bar", bar:"foo"})
