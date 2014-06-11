@@ -4,7 +4,7 @@
 # description: Solves simple math expressions
 # param: expr - The expression to solve
 # tags: math, solve
-# http_method: post
+# http_method: POST
 # output: split
 # -- jojo --
 
