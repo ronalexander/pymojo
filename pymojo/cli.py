@@ -89,6 +89,8 @@ def cli(args):
 
     # Route that action!
     if args.action == "list":
+        opts["boolean"] = args.boolean
+        opts["tags"] = args.tags
         list_scripts(opts)
     elif args.action == "show":
         show(opts, args)
@@ -100,14 +102,48 @@ def cli(args):
     sys.exit(0)
 
 
+def print_script(script):
+    print("Name: {}".format(script["name"]))
+    print("Description: {}".format(script["description"]))
+    print("Filename: {}".format(script["filename"]))
+    print("HTTP Method: {}".format(script["http_method"]))
+    print("Output Type: {}".format(script["output"]))
+    if "params" in script and len(script["params"]) > 0:
+        print("Parameters:")
+        for param in sorted(script["params"]):
+            print("  {}: {}".format(param["name"], param["description"]))
+    if "filtered_params" in script and len(script["filtered_params"]) > 0:
+        print("Filtered parameters:")
+        for param in script["filtered_params"]:
+            print("  {}".format(param))
+    if "tags" in script and len(script["tags"]) > 0:
+        print("Tags:")
+        for tag in sorted(script["tags"]):
+            print("  {}".format(tag))
+    print("Lock: {}".format(script["lock"]))
+
+
+
 def list_scripts(opts):
     """List available scripts"""
     mojo = Mojo(**opts)
-    if mojo.auth and mojo.unauthorized:
+    if mojo.unauthorized:
         print("Authentication failed")
     else:
-        for script in sorted(mojo.scripts):
-            print(script)
+        if opts["boolean"] is not None and opts["tags"] is not None:
+            if opts["boolean"] == "and":
+                param = "tags"
+            elif opts["boolean"] == "or":
+                param = "any_tags"
+            elif opts["boolean"] == "not":
+                param = "not_tags"
+            scripts = mojo.get_scripts(param, opts["tags"])
+            for script in sorted(scripts):
+                print_script(mojo.get_script(script))
+                print("")
+        else:
+            for script in sorted(mojo.scripts):
+                print(script)
 
 
 def show(opts, args):
@@ -115,23 +151,10 @@ def show(opts, args):
     mojo = Mojo(**opts)
     script = mojo.get_script(args.script)
 
-    if mojo.auth and mojo.unauthorized:
+    if mojo.unauthorized:
         print("Authentication failed")
     else:
-        print("Name: {}".format(script["name"]))
-        print("Lock: {}".format(script["lock"]))
-        print("Filename: {}".format(script["filename"]))
-        print("Description: {}".format(script["description"]))
-        if "params" in script:
-            print("Parameters:")
-            for param in sorted(script["params"]):
-                print(" {}: {}".format(param["name"], param["description"]))
-
-        if "filtered_params" in script:
-            print("Filtered parameters:")
-            for param in script["filtered_params"]:
-                print(" {}".format(param))
-
+        print_script(script)
 
 def run(opts, args):
     """Run a script"""
@@ -151,12 +174,20 @@ def run(opts, args):
         print("Status Code: {}".format(resp.status_code))
         print("Headers:")
         for header in resp.headers:
-            print(" {}: {}".format(header, resp.headers[header]))
+            print("  {}: {}".format(header, resp.headers[header]))
         j = resp.json()
-        print("Script return code: {}".format(j["retcode"]))
-        print("Stderr: {}".format(j["stderr"]))
-        print("Stdout: {}".format(j["stdout"]))
-
+        print("Script return code: {}".format(resp.status_code))
+        if "stderr" in j:
+            print("Stderr:")
+            for line in j["stderr"]:
+                print("  {}".format(line))
+        print("Stdout:")
+        for line in j["stdout"]:
+            print("  {}".format(line))
+        if len(j["return_values"]) > 0:
+            print("Return Values:")
+            for key in sorted(j["return_values"]):
+                print("  {}: {}".format(key, j["return_values"][key]))
 
 def reload_jojo(opts):
     """Reload the Jojo"""

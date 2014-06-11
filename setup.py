@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
   name='PyMoJo',
-  version='0.6.1',
+  version='0.8.0',
   author='Ryan Jung',
   author_email='gradysghost@gmail.com',
   packages=['pymojo'],

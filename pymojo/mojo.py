@@ -36,7 +36,8 @@ class Mojo(object):
         self.unauthorized = False
 
         # Get the script lexicon from the Jojo and cache it
-        self.scripts = self.__get_scripts()
+        self.scripts = self.get_scripts()
+
 
     def __call(self, path, method="GET", data=""):
         """Makes a call to a Jojo"""
@@ -61,16 +62,31 @@ class Mojo(object):
 
         return response
 
-    def __get_scripts(self):
+
+    def get_scripts(self, param=None, tags=None):
         """Gets a collection of scripts that live on the Jojo"""
-        resp = self.__call("/scripts", method="GET")
+        route = "/scripts"
+        if param is not None and tags is not None:
+            route += "?{}={}".format(param, tags)
+        resp = self.__call(route, method="GET")
         if resp.status_code == 200:
-            return resp.json()['scripts']
+            return resp.json()["scripts"]
         elif resp.status_code == 401:
             self.unauthorized = True
             resp.raise_for_status()
 
         return {}
+
+
+    def get_script_names(self, param=None, tags=None):
+        """Gets a list of script names that live on the Jojo"""
+        route = "/script_names"
+        if param is not None and tags is not None:
+            route += "?{}={}".format(param, tags)
+        resp = self.__call(route, method="GET")
+        if resp.status_code == 200:
+            return resp.json()["script_names"]
+
 
     def reload(self):
         """Reloads the Jojo's script cache, then stashes that data in the
@@ -78,12 +94,13 @@ class Mojo(object):
         response = self.__call("/reload", method="POST")
 
         if response.status_code == 200:
-            self.scripts = self.__get_scripts()
+            self.scripts = self.get_scripts()
             return True
         elif response.status_code == 401:
             return False
         else:
             return None
+
 
     def get_script(self, name, use_cache=True):
         """Gets data about a script in the Jojo, from the cache or from the
@@ -94,19 +111,27 @@ class Mojo(object):
             else:
                 return None
         else:
-            resp = self.__call("/scripts/{}".format(name), method="GET")
+            resp = self.__call("/scripts/{}".format(name), method="OPTIONS")
             if resp.status_code == 200:
                 self.scripts[name] = resp.json()['script']
                 return self.scripts[name]
             else:
                 return None
 
+
     def run(self, name, params=None):
         """Runs the named script with the given parameters"""
         data = None
+        if name not in self.scripts:
+            script = get_script(name, use_cace=False)
+            if script is None:
+                print("No script named {} exists on the server".format(name))
+
         if params is not None:
             data = json.dumps(params)
 
         return self.__call(
-            "/scripts/{}".format(name), method="POST", data=data
+            "/scripts/{}".format(name),
+            method=self.scripts[name]['http_method'],
+            data=data
         )
