@@ -2,9 +2,13 @@ A generic client library and command line client for Pyjojo, which lives
 `here <https://github.com/atarola/pyjojo>`. Together, they are
 `Mojojojo <http://i.imgur.com/TW2EiMb.gif>`!
 
-=====
-Usage
-=====
+Important Note
+==============
+
+Pyjojo implemented some
+`breaking changes <https://github.com/atarola/pyjojo#recent-breaking-changes`
+recently. This version of Pymojo, v0.6, is the last version that supports
+versions of Pyjojo prior to these changes.
 
 Installation
 ============
@@ -13,8 +17,11 @@ Simple::
 
     pip install pymojo
 
+Usage
+=====
+
 Command Line Client
-===================
+-------------------
 
 In brief, for a totally default Jojo...
 

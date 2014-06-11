@@ -38,7 +38,6 @@ class Mojo(object):
         # Get the script lexicon from the Jojo and cache it
         self.scripts = self.__get_scripts()
 
-
     def __call(self, path, method="GET", data=""):
         """Makes a call to a Jojo"""
         session = requests.Session()
@@ -65,7 +64,6 @@ class Mojo(object):
     def __get_scripts(self):
         """Gets a collection of scripts that live on the Jojo"""
         resp = self.__call("/scripts", method="GET")
-        print("Status code: {0}".format(resp.status_code))
         if resp.status_code == 200:
             return resp.json()['scripts']
         elif resp.status_code == 401:

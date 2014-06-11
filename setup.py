@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
   name='PyMoJo',
-  version='0.5.3',
+  version='0.6',
   author='Ryan Jung',
   author_email='gradysghost@gmail.com',
   packages=['pymojo'],
@@ -16,7 +16,7 @@ setup(
   ],
   entry_points={
     'console_scripts' : [
-      'mojo = pymojo.mojo:main'
+      'mojo = pymojo.cli_bin:main'
     ]
   }
 )
