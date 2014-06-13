@@ -106,8 +106,10 @@ def print_script(script):
     print("Name: {}".format(script["name"]))
     print("Description: {}".format(script["description"]))
     print("Filename: {}".format(script["filename"]))
-    print("HTTP Method: {}".format(script["http_method"]))
-    print("Output Type: {}".format(script["output"]))
+    if "http_method" in script:
+        print("HTTP Method: {}".format(script["http_method"]))
+    if "output" in script:
+        print("Output Type: {}".format(script["output"]))
     if "params" in script and len(script["params"]) > 0:
         print("Parameters:")
         for param in sorted(script["params"]):
@@ -179,12 +181,19 @@ def run(opts, args):
         print("Script return code: {}".format(resp.status_code))
         if "stderr" in j:
             print("Stderr:")
-            for line in j["stderr"]:
-                print("  {}".format(line))
-        print("Stdout:")
-        for line in j["stdout"]:
-            print("  {}".format(line))
-        if len(j["return_values"]) > 0:
+            if type(j["stderr"]) is unicode:
+                print(j["stderr"])
+            else:
+                for line in j["stderr"]:
+                    print("  {}".format(line))
+        if "stdout" in j:
+            print("Stdout:")
+            if type(j["stdout"]) is unicode:
+                print(j["stdout"])
+            else:
+                for line in j["stdout"]:
+                    print("  {}".format(line))
+        if "return_values" in j and len(j["return_values"]) > 0:
             print("Return Values:")
             for key in sorted(j["return_values"]):
                 print("  {}: {}".format(key, j["return_values"][key]))

@@ -38,6 +38,11 @@ class Mojo(object):
         # Get the script lexicon from the Jojo and cache it
         self.scripts = self.get_scripts()
 
+        # For backward compatibility, add a method for old jojos
+        for script in self.scripts:
+            if "http_method" not in script:
+                self.scripts[script]["http_method"] = "POST"
+
 
     def __call(self, path, method="GET", data=""):
         """Makes a call to a Jojo"""
