@@ -7,7 +7,8 @@ A generic client library and command line client for Pyjojo, which lives
 Pyjojo implemented some
 [breaking changes](https://github.com/atarola/pyjojo#recent-breaking-changes)
 recently. This version of Pymojo, v0.8.x, is the first version that supports
-versions of Pyjojo after these changes.
+versions of Pyjojo after these changes. As of v0.8.2, Pymojo is compatible with
+both new and old versions of Pyjojo.
 
 ## Installation
 
