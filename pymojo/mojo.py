@@ -128,7 +128,7 @@ class Mojo(object):
         """Runs the named script with the given parameters"""
         data = None
         if name not in self.scripts:
-            script = get_script(name, use_cace=False)
+            script = self.get_script(name, use_cache=False)
             if script is None:
                 print("No script named {} exists on the server".format(name))
 
