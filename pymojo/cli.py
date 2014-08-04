@@ -178,7 +178,7 @@ def run(opts, args):
         for header in resp.headers:
             print("  {}: {}".format(header, resp.headers[header]))
         j = resp.json()
-        print("Script return code: {}".format(resp.status_code))
+        print("Script return code: {}".format(j['retcode']))
         if "stderr" in j:
             print("Stderr:")
             if type(j["stderr"]) is unicode:
