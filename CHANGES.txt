@@ -16,3 +16,4 @@ v0.5.3, 2014-04-18 -- List and show functions now sort the output, absence of
 v0.8.1, 2014-06-10 -- Now compatible with new Jojos
 v0.8.2, 2014-06-13 -- Now backward compatible with old Jojos again
 v0.8.4, 2014-07-25 -- Bugfixes
+v0.8.5, 2014-08-04 -- https://github.com/GradysGhost/pymojo/issues/17
