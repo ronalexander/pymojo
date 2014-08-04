@@ -102,11 +102,11 @@ def cli(args):
                         if endpoint == cendpoint:
                             # completes and adds an endpoint config
                             instance = complete_instance(cenvs[args.env][cendpoint], args, default_opts)
-                            optscomplex[cendpoint] = instance.copy()
+                            optscomplex[cendpoint] = instance
             else:
                 for cendpoint in cenvs[args.env]:
                     instance = complete_instance(cenvs[args.env][cendpoint], args, default_opts)
-                    optscomplex[cendpoint] = instance.copy()
+                    optscomplex[cendpoint] = instance
     # User did not supply an environment name...
     else:
         # ...but they have a default_environment...
@@ -114,22 +114,20 @@ def cli(args):
             cde = config["default_environment"]
             # ...and that environment is defined: "load" those settings.
             if cde in config["environments"]:
-                if args.endpoints is not None:
+                if args.endpoints is not None and args.endpoints != "all":
                     endpoints = args.endpoints
+                elif args.endpoints == "all":
+                    endpoints = ",".join(config["environments"][cde])
                 else:
                     endpoints = config["default_endpoint"]
-                #### need to fix this when no argument is passed it fails the comma split
-                print "endpoints: ", endpoints, type(endpoints)
-                for endpoint in args.endpoints.split(','):
+                for endpoint in endpoints.split(','):
                     optscomplex[endpoint] = complete_instance(config["environments"][cde][endpoint], args, default_opts)
             # ...but that env doesn't exist: error/exit.
             else:
                 print("The default environment is not defined.")
                 sys.exit(1)
-    print "optscomplex: ", optscomplex
     # Route that action!
     for instance in optscomplex:
-        print "instance in optscomplex: ",instance
         opts = optscomplex[instance]
         if args.action == "list":
             opts["boolean"] = args.boolean
@@ -138,8 +136,6 @@ def cli(args):
         elif args.action == "show":
             show(opts, args)
         elif args.action == "run":
-            print "opts", opts
-            print "args",args
             run(opts, args)
         elif args.action == "reload":
             reload_jojo(opts)
