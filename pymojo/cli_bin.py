@@ -65,6 +65,13 @@ def create_argument_parser():
         help="The name of the configured environment to control"
     )
     parser.add_argument(
+        "-d",
+        "--endpoints",
+        dest="endpoints",
+        default=None,
+        help="The name of the configured endpoint within and environment to control"
+    )
+    parser.add_argument(
         "-b",
         "--list-boolean",
         choices=["and", "or", "not"],

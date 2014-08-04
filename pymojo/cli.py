@@ -18,14 +18,44 @@ def dict_merge(src, dest):
             dest[key] = value
     return dest
 
+def complete_instance(instance, args, default_opts):
+    """Helper function for overriding the instance with CLI settings and filling incomplete instances with default options"""
+    # Allow user to override settings from the CLI
+    if args.endpoint is not None:
+        instance["endpoint"] = args.endpoint
+    if args.port is not None:
+        instance["port"] = args.port
+    if args.use_ssl is not None:
+        instance["use_ssl"] = args.use_ssl
+    if args.verify is not None:
+        instance["verify"] = args.verify
+    if args.user is not None:
+        instance["user"] = args.user
+    if args.password is not None:
+        instance["password"] = args.password
+    # Bring in any missing values at their defaults
+    instance = dict_merge(instance, default_opts.copy())
+    return instance
+
+def fix_oldstyle_config(config):
+    """Helper function for fixing an old-style config"""
+    for k, v in config["environments"].items():
+        tmpr_config = {}
+        if "endpoint" in config["environments"][k]:
+            tmpr_config[k] = config["environments"][k]
+            del config["environments"][k]
+            config["environments"][k] = tmpr_config
+    if "default_endpoint" not in config and "default_environment" in config:
+        config["default_endpoint"] = config["default_environment"]
+    return config
 
 def cli(args):
     """Run the command line client"""
-
     # Defaults
     config_files = ["/etc/mojo.yml", os.path.expanduser("~") + "/.mojo.yml"]
     config = {"environments": {}, "default_environment": None}
     opts = {}
+    optscomplex = {}
     default_opts = {
         "endpoint": "localhost",
         "port": 3000,
@@ -38,11 +68,11 @@ def cli(args):
     # User supplied additional config file?
     if args.config is not None:
         config_files.append(os.path.expanduser(args.config))
-
     # Merge the config dictionaries
     for config_file in config_files:
         try:
-            config = dict_merge(yaml.load(open(config_file, 'r')), config)
+            another_config = fix_oldstyle_config(yaml.load(open(config_file, 'r')))
+            config = dict_merge(another_config, config)
         except IOError:
             pass
 
@@ -57,50 +87,64 @@ def cli(args):
             sys.exit(1)
         # ...and it is defined: "load" those settings.
         else:
-            opts = config["environments"][args.env]
+            # check config for endpoints. will be either a single name or comma-separated list of endpoints
+            cenvs = config["environments"]
+            # test for no endpoint passed with a default endpoint
+            #x if C else y
+            #endpoints = args.endpoints if args.endpoint is not None else config["default_endpoint"]
+            if args.endpoints is not None:
+                endpoints = args.endpoints
+            else:
+                endpoints = config["default_endpoint"]
+            if endpoints is not None and endpoints != "all":
+                for endpoint in endpoints.split(','):
+                    for cendpoint in cenvs[args.env]:
+                        if endpoint == cendpoint:
+                            # completes and adds an endpoint config
+                            instance = complete_instance(cenvs[args.env][cendpoint], args, default_opts)
+                            optscomplex[cendpoint] = instance.copy()
+            else:
+                for cendpoint in cenvs[args.env]:
+                    instance = complete_instance(cenvs[args.env][cendpoint], args, default_opts)
+                    optscomplex[cendpoint] = instance.copy()
     # User did not supply an environment name...
     else:
         # ...but they have a default_environment...
         if config["default_environment"] is not None:
+            cde = config["default_environment"]
             # ...and that environment is defined: "load" those settings.
-            if config["default_environment"] in config["environments"]:
-                opts = config["environments"][config["default_environment"]]
+            if cde in config["environments"]:
+                if args.endpoints is not None:
+                    endpoints = args.endpoints
+                else:
+                    endpoints = config["default_endpoint"]
+                #### need to fix this when no argument is passed it fails the comma split
+                print "endpoints: ", endpoints, type(endpoints)
+                for endpoint in args.endpoints.split(','):
+                    optscomplex[endpoint] = complete_instance(config["environments"][cde][endpoint], args, default_opts)
             # ...but that env doesn't exist: error/exit.
             else:
                 print("The default environment is not defined.")
                 sys.exit(1)
-
-    # Allow user to override settings from the CLI
-    if args.endpoint is not None:
-        opts["endpoint"] = args.endpoint
-    if args.port is not None:
-        opts["port"] = args.port
-    if args.use_ssl is not None:
-        opts["use_ssl"] = args.use_ssl
-    if args.verify is not None:
-        opts["verify"] = args.verify
-    if args.user is not None:
-        opts["user"] = args.user
-    if args.password is not None:
-        opts["password"] = args.password
-
-    # Bring in any missing values at their defaults
-    opts = dict_merge(opts, default_opts)
-
+    print "optscomplex: ", optscomplex
     # Route that action!
-    if args.action == "list":
-        opts["boolean"] = args.boolean
-        opts["tags"] = args.tags
-        list_scripts(opts)
-    elif args.action == "show":
-        show(opts, args)
-    elif args.action == "run":
-        run(opts, args)
-    elif args.action == "reload":
-        reload_jojo(opts)
+    for instance in optscomplex:
+        print "instance in optscomplex: ",instance
+        opts = optscomplex[instance]
+        if args.action == "list":
+            opts["boolean"] = args.boolean
+            opts["tags"] = args.tags
+            list_scripts(opts)
+        elif args.action == "show":
+            show(opts, args)
+        elif args.action == "run":
+            print "opts", opts
+            print "args",args
+            run(opts, args)
+        elif args.action == "reload":
+            reload_jojo(opts)
 
     sys.exit(0)
-
 
 def print_script(script):
     print("Name: {}".format(script["name"]))
@@ -123,8 +167,6 @@ def print_script(script):
         for tag in sorted(script["tags"]):
             print("  {}".format(tag))
     print("Lock: {}".format(script["lock"]))
-
-
 
 def list_scripts(opts):
     """List available scripts"""
