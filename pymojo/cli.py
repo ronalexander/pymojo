@@ -18,6 +18,24 @@ def dict_merge(src, dest):
             dest[key] = value
     return dest
 
+def complete_environment(environment, args, default_opts):
+    """Helper function for overriding the environment with CLI settings and filling incomplete instances with default options"""
+    # Allow user to override settings from the CLI
+    if args.endpoint is not None:
+        environment["endpoint"] = args.endpoint
+    if args.port is not None:
+        environment["port"] = args.port
+    if args.use_ssl is not None:
+        environment["use_ssl"] = args.use_ssl
+    if args.verify is not None:
+        environment["verify"] = args.verify
+    if args.user is not None:
+        environment["user"] = args.user
+    if args.password is not None:
+        environment["password"] = args.password
+    # Bring in any missing values at their defaults
+    environment = dict_merge(environment, default_opts.copy())
+    return environment
 
 def cli(args):
     """Run the command line client"""
@@ -49,55 +67,76 @@ def cli(args):
     # Some logic to determine if we have enough information to run
     # and also to load any preconfigured connection options
 
-    # User supplied an environment name...
-    if args.env is not None:
+    # User supplied an environment name or a group...
+    if args.env is not None or args.group is not None:
         # ...but it doesn't exist: error/exit.
-        if args.env not in config["environments"]:
+        if args.env is not None and args.env not in config["environments"]:
             print("The specified environment is not defined.")
             sys.exit(1)
         # ...and it is defined: "load" those settings.
         else:
-            opts = config["environments"][args.env]
+            if args.group is not None and args.group:
+                    if args.group not in config["groups"]:
+                        print("The specified group is not defined.")
+                    else:
+                        #User supplied a valid group, make a list for convenient use later
+                        user_environments = ",".join(config["groups"][args.group])
+            else:
+                #no group passed so get the environment
+                user_environments = args.env
+        #We now have a list of user environments that contains one or more environments
+        for environment in user_environments.split(','):
+            # ensure we have a real environment
+            if environment in config["environments"]:
+                ## complete the environment and add it to the opts dict
+                opts[environment] = complete_environment(config["environments"][environment], args, default_opts)
+            else:
+                print("The group contains an invalid environment: ", environment)
+                sys.exit(1)
+        
     # User did not supply an environment name...
     else:
         # ...but they have a default_environment...
         if config["default_environment"] is not None:
             # ...and that environment is defined: "load" those settings.
             if config["default_environment"] in config["environments"]:
-                opts = config["environments"][config["default_environment"]]
+                # complete the environment and add it to the opts dict
+                opts[config["default_environment"]] = complete_environment(config["environments"][config["default_environment"]], args, default_opts)
             # ...but that env doesn't exist: error/exit.
             else:
                 print("The default environment is not defined.")
                 sys.exit(1)
 
-    # Allow user to override settings from the CLI
-    if args.endpoint is not None:
-        opts["endpoint"] = args.endpoint
-    if args.port is not None:
-        opts["port"] = args.port
-    if args.use_ssl is not None:
-        opts["use_ssl"] = args.use_ssl
-    if args.verify is not None:
-        opts["verify"] = args.verify
-    if args.user is not None:
-        opts["user"] = args.user
-    if args.password is not None:
-        opts["password"] = args.password
+    # # Allow user to override settings from the CLI
+    # if args.endpoint is not None:
+    #     opts["endpoint"] = args.endpoint
+    # if args.port is not None:
+    #     opts["port"] = args.port
+    # if args.use_ssl is not None:
+    #     opts["use_ssl"] = args.use_ssl
+    # if args.verify is not None:
+    #     opts["verify"] = args.verify
+    # if args.user is not None:
+    #     opts["user"] = args.user
+    # if args.password is not None:
+    #     opts["password"] = args.password
 
-    # Bring in any missing values at their defaults
-    opts = dict_merge(opts, default_opts)
+    ## Bring in any missing values at their defaults
+    #opts = dict_merge(opts, default_opts)
 
     # Route that action!
-    if args.action == "list":
-        opts["boolean"] = args.boolean
-        opts["tags"] = args.tags
-        list_scripts(opts)
-    elif args.action == "show":
-        show(opts, args)
-    elif args.action == "run":
-        run(opts, args)
-    elif args.action == "reload":
-        reload_jojo(opts)
+    for environment_name in opts:
+        environment = opts[environment_name]
+        if args.action == "list":
+            environment["boolean"] = args.boolean
+            environment["tags"] = args.tags
+            list_scripts(environment)
+        elif args.action == "show":
+            show(environment, args)
+        elif args.action == "run":
+            run(environment, args)
+        elif args.action == "reload":
+            reload_jojo(environment)
 
     sys.exit(0)
 

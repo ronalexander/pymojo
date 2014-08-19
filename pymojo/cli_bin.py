@@ -22,6 +22,12 @@ def create_argument_parser():
         help="The host to connect to a Jojo instance on"
     )
     parser.add_argument(
+        "-g",
+        "--group",
+        dest="group",
+        default=None,
+        help="The group of Jojo instances to perform actions")
+    parser.add_argument(
         "-p",
         "--port",
         dest="port",
