@@ -107,23 +107,6 @@ def cli(args):
                 print("The default environment is not defined.")
                 sys.exit(1)
 
-    # # Allow user to override settings from the CLI
-    # if args.endpoint is not None:
-    #     opts["endpoint"] = args.endpoint
-    # if args.port is not None:
-    #     opts["port"] = args.port
-    # if args.use_ssl is not None:
-    #     opts["use_ssl"] = args.use_ssl
-    # if args.verify is not None:
-    #     opts["verify"] = args.verify
-    # if args.user is not None:
-    #     opts["user"] = args.user
-    # if args.password is not None:
-    #     opts["password"] = args.password
-
-    ## Bring in any missing values at their defaults
-    #opts = dict_merge(opts, default_opts)
-
     # Route that action!
     for environment_name in opts:
         environment = opts[environment_name]
