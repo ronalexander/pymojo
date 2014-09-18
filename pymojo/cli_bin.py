@@ -1,7 +1,7 @@
 """The executable component of the Mojo command line client"""
 import argparse
 
-import cli
+import pymojo.cli as cli
 
 
 def create_argument_parser():

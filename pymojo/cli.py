@@ -3,7 +3,7 @@ import os
 import sys
 import yaml
 
-from mojo import Mojo
+from pymojo.mojo import Mojo
 
 
 def dict_merge(src, dest):
@@ -18,8 +18,10 @@ def dict_merge(src, dest):
             dest[key] = value
     return dest
 
+
 def complete_environment(environment, args, default_opts):
-    """Helper function for overriding the environment with CLI settings and filling incomplete instances with default options"""
+    """Helper function for overriding the environment with CLI settings and
+    filling incomplete instances with default options"""
     # Allow user to override settings from the CLI
     if args.endpoint is not None:
         environment["endpoint"] = args.endpoint
@@ -36,6 +38,7 @@ def complete_environment(environment, args, default_opts):
     # Bring in any missing values at their defaults
     environment = dict_merge(environment, default_opts.copy())
     return environment
+
 
 def cli(args):
     """Run the command line client"""
@@ -76,24 +79,32 @@ def cli(args):
         # ...and it is defined: "load" those settings.
         else:
             if args.group is not None and args.group:
-                    if args.group not in config["groups"]:
-                        print("The specified group is not defined.")
-                    else:
-                        #User supplied a valid group, make a list for convenient use later
-                        user_environments = ",".join(config["groups"][args.group])
+                if args.group not in config["groups"]:
+                    print("The specified group is not defined.")
+                else:
+                    # User supplied a valid group
+                    # Make a list for convenient use later
+                    user_environments = \
+                        ",".join(config["groups"][args.group])
             else:
-                #no group passed so get the environment
+                # No group passed so get the environment
                 user_environments = args.env
-        #We now have a list of user environments that contains one or more environments
+        # We now have a list of user environments that contains one or more
+        # environments
         for environment in user_environments.split(','):
-            # ensure we have a real environment
+            # Ensure we have a real environment
             if environment in config["environments"]:
-                ## complete the environment and add it to the opts dict
-                opts[environment] = complete_environment(config["environments"][environment], args, default_opts)
+                # Complete the environment and add it to the opts dict
+                opts[environment] = complete_environment(
+                    config["environments"][environment], args, default_opts
+                )
             else:
-                print("The group contains an invalid environment: ", environment)
+                print(
+                    "The group contains an invalid environment:",
+                    environment
+                )
                 sys.exit(1)
-        
+
     # User did not supply an environment name...
     else:
         # ...but they have a default_environment...
@@ -101,7 +112,11 @@ def cli(args):
             # ...and that environment is defined: "load" those settings.
             if config["default_environment"] in config["environments"]:
                 # complete the environment and add it to the opts dict
-                opts[config["default_environment"]] = complete_environment(config["environments"][config["default_environment"]], args, default_opts)
+                opts[config["default_environment"]] = complete_environment(
+                    config["environments"][config["default_environment"]],
+                    args,
+                    default_opts
+                )
             # ...but that env doesn't exist: error/exit.
             else:
                 print("The default environment is not defined.")
@@ -125,6 +140,7 @@ def cli(args):
 
 
 def print_script(script):
+    """Prints the details of the given script to the console"""
     print("Name: {}".format(script["name"]))
     print("Description: {}".format(script["description"]))
     print("Filename: {}".format(script["filename"]))
@@ -145,7 +161,6 @@ def print_script(script):
         for tag in sorted(script["tags"]):
             print("  {}".format(tag))
     print("Lock: {}".format(script["lock"]))
-
 
 
 def list_scripts(opts):
@@ -179,6 +194,7 @@ def show(opts, args):
         print("Authentication failed")
     else:
         print_script(script)
+
 
 def run(opts, args):
     """Run a script"""
@@ -219,6 +235,7 @@ def run(opts, args):
             print("Return Values:")
             for key in sorted(j["return_values"]):
                 print("  {}: {}".format(key, j["return_values"][key]))
+
 
 def reload_jojo(opts):
     """Reload the Jojo"""
