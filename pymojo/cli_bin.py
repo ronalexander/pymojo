@@ -1,7 +1,7 @@
 """The executable component of the Mojo command line client"""
 import argparse
 
-import cli
+import pymojo.cli as cli
 
 
 def create_argument_parser():
@@ -21,6 +21,12 @@ def create_argument_parser():
         default=None,
         help="The host to connect to a Jojo instance on"
     )
+    parser.add_argument(
+        "-g",
+        "--group",
+        dest="group",
+        default=None,
+        help="The group of Jojo instances to perform actions")
     parser.add_argument(
         "-p",
         "--port",
