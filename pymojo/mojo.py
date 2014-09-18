@@ -43,7 +43,6 @@ class Mojo(object):
             if "http_method" not in script:
                 self.scripts[script]["http_method"] = "POST"
 
-
     def __call(self, path, method="GET", data=""):
         """Makes a call to a Jojo"""
         session = requests.Session()
@@ -67,7 +66,6 @@ class Mojo(object):
 
         return response
 
-
     def get_scripts(self, param=None, tags=None):
         """Gets a collection of scripts that live on the Jojo"""
         route = "/scripts"
@@ -82,7 +80,6 @@ class Mojo(object):
 
         return {}
 
-
     def get_script_names(self, param=None, tags=None):
         """Gets a list of script names that live on the Jojo"""
         route = "/script_names"
@@ -91,7 +88,6 @@ class Mojo(object):
         resp = self.__call(route, method="GET")
         if resp.status_code == 200:
             return resp.json()["script_names"]
-
 
     def reload(self):
         """Reloads the Jojo's script cache, then stashes that data in the
@@ -105,7 +101,6 @@ class Mojo(object):
             return False
         else:
             return None
-
 
     def get_script(self, name, use_cache=True):
         """Gets data about a script in the Jojo, from the cache or from the
@@ -122,7 +117,6 @@ class Mojo(object):
                 return self.scripts[name]
             else:
                 return None
-
 
     def run(self, name, params=None):
         """Runs the named script with the given parameters"""
