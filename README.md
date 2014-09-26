@@ -38,8 +38,8 @@ Reload the Jojo's script listing:
 
 More officially, mojo works like this...
 
-    mojo [ -b boolean ] [ -c config_file ] [ -e endpoint ] [ -i ]
-         [ -n environment ] [ p port ] [ -s ] [ -t tag1,tag2,tagN ]
+    mojo [ -b boolean ] [ -c config_file ] [ -e endpoint ] [ -g group ]
+         [ -i ][ -n environment ] [ p port ] [ -s ] [ -t tag1,tag2,tagN ]
          [ -u username ] [ -w password ] action [ script ] [ params ]
 
 The various arguments (see below) tell Mojo how to hook up to your Jojo. The
@@ -62,6 +62,10 @@ These should be written like this: `key1=value1 key2=value2`
 
     (-e | --endpoint) hostname
       The hostname running your Jojo
+
+    ( -g | --group )
+      Specify a configured group to apply changes across multiple environments
+      (see `Configuration`)
 
     ( -i | --ignore-warnings )
       Ignore SSL certificate security warnings, such as those in response to
@@ -106,6 +110,10 @@ configuration might look like this:
         password: l0calU$erP@ss
       bobs-jojo-server:
         endpoint: "192.168.1.201"
+    groups:
+      group-one:
+        - local
+        - bobs-jojo-server
     default_environment: "local"
 
 That defines two environments, called "local" and "bobs-jojo-server" whose
@@ -115,6 +123,13 @@ settings can be used with the `-n` option, like so:
 
 If you don't provide a `-n` option, Mojo will try to use the
 `default_environment`.
+
+A group is also defined called "group-one". This group includes both servers
+and will run commands against all servers in the group with the `-g` option,
+like so:
+  
+    mojo -g group-one list
+
 
 Mojo will automatically pull in configration files found at `/etc/mojo.yml` and
 `~/.mojo.yml`, but you can specify an additional config file with `-c`.
