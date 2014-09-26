@@ -39,7 +39,7 @@ Reload the Jojo's script listing:
 More officially, mojo works like this...
 
     mojo [ -b boolean ] [ -c config_file ] [ -e endpoint ] [ -g group ]
-         [ -i ][ -n environment ] [ p port ] [ -s ] [ -t tag1,tag2,tagN ]
+         [ -i ] [ -n environment ] [ p port ] [ -s ] [ -t tag1,tag2,tagN ]
          [ -u username ] [ -w password ] action [ script ] [ params ]
 
 The various arguments (see below) tell Mojo how to hook up to your Jojo. The
